@@ -1,15 +1,12 @@
 {
-  "name": "macro-auth",
+  "name": "macro-auth-server",
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "gen": "node gen.js",
-    "client": "node client.js"
+    "start": "node server.js"
   },
   "dependencies": {
     "express": "^4.18.2",
-    "axios": "^1.6.0",
-    "systeminformation": "^5.21.0"
+    "mongoose": "^8.0.0"
   }
 }
