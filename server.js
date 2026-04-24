@@ -1,37 +1,43 @@
-
 const express = require("express");
-const fs = require("fs");
-
 const app = express();
+
 app.use(express.json());
 
-const DB = "keys.json";
+// 🔥 simple in-memory storage
+let keys = {};
 
-function load() {
-  return JSON.parse(fs.readFileSync(DB));
-}
-function save(data) {
-  fs.writeFileSync(DB, JSON.stringify(data, null, 2));
-}
+// 🔑 generate key
+app.get("/gen", (req, res) => {
+  const key = Math.random().toString(36).substring(2, 12).toUpperCase();
 
-// check key + bind device
+  keys[key] = { deviceId: null };
+
+  res.json({ key });
+});
+
+// 🔐 check key
 app.post("/check", (req, res) => {
   const { key, deviceId } = req.body;
-  const db = load();
 
-  if (!db[key]) return res.json({ success: false, msg: "Invalid key" });
-
-  if (!db[key].deviceId) {
-    db[key].deviceId = deviceId; // bind first use
-    save(db);
-    return res.json({ success: true, msg: "Activated on this device" });
+  if (!keys[key]) {
+    return res.json({ success: false, msg: "Invalid key" });
   }
 
-  if (db[key].deviceId === deviceId) {
+  if (!keys[key].deviceId) {
+    keys[key].deviceId = deviceId;
+    return res.json({ success: true, msg: "Activated" });
+  }
+
+  if (keys[key].deviceId === deviceId) {
     return res.json({ success: true, msg: "Welcome back" });
   }
 
-  return res.json({ success: false, msg: "Key already used on another device" });
+  return res.json({ success: false, msg: "Key already used" });
 });
 
-app.listen(3000, () => console.log("Server running on http://localhost:3000"));
+// test route
+app.get("/", (req, res) => {
+  res.send("Server running");
+});
+
+app.listen(3000, () => console.log("Server running"));
