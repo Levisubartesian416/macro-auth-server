@@ -4,11 +4,9 @@ const mongoose = require("mongoose");
 const app = express();
 app.use(express.json());
 
-// 🔐 ENV VARIABLES
+// 🔌 MongoDB connection
 const MONGO_URI = process.env.MONGO_URI;
-const ADMIN_KEY = process.env.ADMIN_KEY;
 
-// 🔌 CONNECT TO MONGODB
 mongoose.connect(MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
@@ -16,7 +14,7 @@ mongoose.connect(MONGO_URI, {
 .then(() => console.log("MongoDB connected"))
 .catch(err => console.log("Mongo error:", err));
 
-// 📦 SCHEMA
+// 📦 Schema
 const KeySchema = new mongoose.Schema({
   key: String,
   deviceId: String
@@ -24,15 +22,8 @@ const KeySchema = new mongoose.Schema({
 
 const Key = mongoose.model("Key", KeySchema);
 
-// 🔑 GENERATE KEY (LOCKED)
+// 🔑 GENERATE KEY (OPEN AGAIN)
 app.get("/gen", async (req, res) => {
-  const adminKey = req.query.key;
-
-  // 🚨 BLOCK if wrong or missing
-  if (adminKey !== ADMIN_KEY) {
-    return res.status(403).json({ error: "Unauthorized" });
-  }
-
   try {
     const key = Math.random().toString(36).substring(2, 12).toUpperCase();
 
@@ -41,6 +32,7 @@ app.get("/gen", async (req, res) => {
     res.json({ key });
 
   } catch (err) {
+    console.log(err);
     res.status(500).json({ error: "Failed to generate key" });
   }
 });
@@ -73,12 +65,11 @@ app.post("/check", async (req, res) => {
   }
 });
 
-// 🌐 TEST ROUTE
+// 🌐 Test route
 app.get("/", (req, res) => {
   res.send("Server running");
 });
 
-// 🚀 START SERVER
 app.listen(3000, () => {
   console.log("Server running on port 3000");
 });
